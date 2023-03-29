@@ -1,82 +1,66 @@
+import "source-map-support/register";
+
 import * as cdk from "aws-cdk-lib";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import * as s3 from "aws-cdk-lib/aws-s3";
-import * as iam from "aws-cdk-lib/aws-iam";
-import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
-import { Construct } from "constructs";
-import * as path from "path";
-import * as s3n from "aws-cdk-lib/aws-s3-notifications";
+import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as eks from "aws-cdk-lib/aws-eks";
+import * as ec2peer from "aws-cdk-lib/aws-ec2-peer";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as route53targets from "aws-cdk-lib/aws-route53-targets";
+import { Construct } from "constructs/lib/construct";
 
 export class HyperLedgerFarbricMultiRegionStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
-    super(scope, id, props);
+  constructor(app: Construct, id: string, props?: cdk.StackProps) {
+    super(app, id, props);
 
-    // Create S3 Bucket
-    const bucket = new s3.Bucket(this, "Bucket", {
-      removalPolicy: cdk.RemovalPolicy.DESTROY,
+    // Define the VPC in us-east-1 region
+    const vpcUsEast1 = new ec2.Vpc(app, "Hyperledger-Fabric-VPC-UsEast1", {
+      maxAzs: 2,
+      cidr: "10.0.0.0/16",
+      natGateways: 3,
+      subnetConfiguration: [
+        {
+          subnetType: ec2.SubnetType.PUBLIC,
+          name: "Public",
+        },
+        {
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+          name: "Private",
+        },
+      ],
     });
 
-    // create DynamoDB table to hold Rekognition results
-    const table = new Table(this, "Classifications", {
-      partitionKey: {
-        name: "image_name",
-        type: AttributeType.STRING,
-      },
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // removes table on cdk destroy
+    // Define the VPC in us-west-2 region
+    const vpcUsWest2 = new ec2.Vpc(app, "Hyperledger-Fabric-VPC-UsWest2", {
+      maxAzs: 3,
+      cidr: "10.0.0.0/16",
+      natGateways: 1,
+      subnetConfiguration: [
+        {
+          subnetType: ec2.SubnetType.PUBLIC,
+          name: "Public",
+        },
+        {
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+          name: "Private",
+        },
+      ],
     });
 
-    // create Lambda function
-    const lambdaFunction = new lambda.Function(this, "RekFunction", {
-      handler: "rekfunction.handler",
-      runtime: lambda.Runtime.NODEJS_14_X,
-      code: lambda.Code.fromAsset(path.join(__dirname, "../lambda")),
-      environment: {
-        BUCKET_NAME: bucket.bucketName,
-        TABLE_NAME: table.tableName,
-      },
-    });
-
-    // add Rekognition permissions for Lambda function
-    const statement = new iam.PolicyStatement();
-    statement.addActions("rekognition:DetectLabels");
-    statement.addResources("*");
-    lambdaFunction.addToRolePolicy(statement);
-
-    // create trigger for Lambda function with image type suffixes
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(lambdaFunction),
-      { suffix: ".jpg" }
-    );
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(lambdaFunction),
-      { suffix: ".jpeg" }
-    );
-    bucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(lambdaFunction),
-      { suffix: ".png" }
-    );
-
-    // grant permissions for lambda to read/write to DynamoDB table and bucket
-    table.grantReadWriteData(lambdaFunction);
-    bucket.grantReadWrite(lambdaFunction);
-    new cdk.CfnOutput(this, "UploadImageToS3", {
-      value: `aws s3 cp <local-path-to-image> s3://${bucket.bucketName}/`,
-      description:
-        "Upload an image to S3 (using AWS CLI) to trigger Rekognition",
-    });
-    new cdk.CfnOutput(this, "DynamoDBTable", {
-      value: table.tableName,
-      description:
-        "This is where the image Rekognition results will be stored.",
-    });
-    new cdk.CfnOutput(this, "LambdaFunction", {
-      value: lambdaFunction.functionName,
-    });
-    new cdk.CfnOutput(this, "LambdaFunctionLogs", {
-      value: lambdaFunction.logGroup.logGroupName,
+    // Define the VPC in eu-west-1 region
+    const vpcEuWest1 = new ec2.Vpc(app, "Hyperledger-Fabric-VPC-EuWest1", {
+      maxAzs: 3,
+      cidr: "10.0.0.0/16",
+      natGateways: 1,
+      subnetConfiguration: [
+        {
+          subnetType: ec2.SubnetType.PUBLIC,
+          name: "Public",
+        },
+        {
+          subnetType: ec2.SubnetType.PRIVATE_ISOLATED,
+          name: "Private",
+        },
+      ],
     });
   }
 }
