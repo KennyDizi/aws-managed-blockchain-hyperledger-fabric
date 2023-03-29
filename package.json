@@ -2,7 +2,6 @@
   "name": "aws-managed-blockchain-hyperledger-fabric",
   "version": "1.0.0",
   "description": "AWS Managed Blockchain Hyperledger Fabric",
-  "main": "index.js",
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
