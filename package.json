@@ -1,0 +1,29 @@
+{
+  "name": "aws-managed-blockchain-hyperledger-fabric",
+  "version": "1.0.0",
+  "description": "AWS Managed Blockchain Hyperledger Fabric",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@types/node": "18.15.11",
+    "aws-cdk": "^2.70.0",
+    "ts-node": "^10.9.1",
+    "typescript": "~5.0.2"
+  },
+  "dependencies": {
+    "aws-cdk-lib": "2.70.0",
+    "aws-sdk": "^2.1345.0",
+    "constructs": "10.1.294",
+    "source-map-support": "^0.5.21"
+  },
+  "keywords": [
+    "aws"
+  ],
+  "author": "Trung Kenny Dinh",
+  "license": "MIT"
+}
