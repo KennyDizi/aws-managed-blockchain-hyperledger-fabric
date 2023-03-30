@@ -54,7 +54,7 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
       }
     );
 
-    // Build Hyperledger Fabric nodes
+    // Build Hyperledger Fabric Nodes
     const availabilityZones = getAvaibilityZone(this.region);
     const numberOfNodePerAZ = props?.numberOfNodePerAZ ?? 1;
     const hyperledgerFabricNodes: HyperledgerFabricNodeProps[] = [];
@@ -67,15 +67,15 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
       }
     });
 
-    // Build Hyperledger Fabric network
+    // Build Hyperledger Fabric Network
     new HyperledgerFabricNetwork(this, "HyperledgerFabricNetwork", {
       networkName: `hyperledger-fabric-${this.region}-network`,
       networkDescription: `This is ${this.region} Hyperledger Fabric Network.`,
       memberName: `hyperledger-fabric-${this.region}-member`,
       memberDescription: `This is ${this.region} Hyperledger Fabric Member.`,
       frameworkVersion: FrameworkVersion.VERSION_2_2,
-      proposalDurationInHours: props?.proposalDurationInHours,
-      thresholdPercentage: props?.thresholdPercentage,
+      proposalDurationInHours: props?.proposalDurationInHours ?? 48,
+      thresholdPercentage: props?.thresholdPercentage ?? 75,
       nodes: hyperledgerFabricNodes,
       users: [
         { userId: "AppUser1", affilitation: "MyMember" },
