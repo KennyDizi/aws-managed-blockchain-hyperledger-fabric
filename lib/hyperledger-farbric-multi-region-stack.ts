@@ -111,6 +111,7 @@ export class HyperLedgerFarbricMultiRegionStack extends cdk.Stack {
       networkName: "MyNetwork",
       networkDescription: "This is my Hyperledger Fabric network",
       memberName: "MyMember",
+      memberDescription: "This is my Hyperledger Fabric member",
       frameworkVersion: FrameworkVersion.VERSION_2_2,
       proposalDurationInHours: 48,
       thresholdPercentage: 75,
