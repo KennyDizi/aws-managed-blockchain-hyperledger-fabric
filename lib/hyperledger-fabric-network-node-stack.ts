@@ -10,7 +10,7 @@ import {
   HyperledgerFabricNodeProps,
   InstanceType,
 } from "@cdklabs/cdk-hyperledger-fabric-network";
-import { HyperledgerFabricNetworkStackProps } from "./hyper-ledger-fabric-network-stack-props";
+import { HyperledgerFabricNetworkStackProps } from "./hyperledger-fabric-network-stack-props";
 import { getAvaibilityZone } from "../utilities/get-avaibility-zone";
 
 export class HyperledgerFabricNetworkStack extends cdk.Stack {
@@ -62,19 +62,20 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
       for (let i = 0; i < numberOfNodePerAZ; i++) {
         hyperledgerFabricNodes.push({
           availabilityZone: availabilityZone,
-          instanceType: props?.instanceType ?? InstanceType.STANDARD5_LARGE,
+          instanceType: props?.instanceType ?? InstanceType.BURSTABLE3_SMALL,
         });
       }
     });
 
-    new HyperledgerFabricNetwork(this, "Example", {
-      networkName: "MyNetwork",
-      networkDescription: "This is my Hyperledger Fabric network",
-      memberName: "MyMember",
-      memberDescription: "This is my Hyperledger Fabric member",
+    // Build Hyperledger Fabric network
+    new HyperledgerFabricNetwork(this, "HyperledgerFabricNetwork", {
+      networkName: `hyperledger-fabric-${this.region}-network`,
+      networkDescription: `This is ${this.region} Hyperledger Fabric Network.`,
+      memberName: `hyperledger-fabric-${this.region}-member`,
+      memberDescription: `This is ${this.region} Hyperledger Fabric Member.`,
       frameworkVersion: FrameworkVersion.VERSION_2_2,
-      proposalDurationInHours: 48,
-      thresholdPercentage: 75,
+      proposalDurationInHours: props?.proposalDurationInHours,
+      thresholdPercentage: props?.thresholdPercentage,
       nodes: hyperledgerFabricNodes,
       users: [
         { userId: "AppUser1", affilitation: "MyMember" },

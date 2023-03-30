@@ -4,4 +4,6 @@ import { InstanceType } from "@cdklabs/cdk-hyperledger-fabric-network";
 export interface HyperledgerFabricNetworkStackProps extends core.StackProps {
   numberOfNodePerAZ: number;
   instanceType: InstanceType;
+  proposalDurationInHours: number | undefined;
+  thresholdPercentage: number | undefined;
 }
