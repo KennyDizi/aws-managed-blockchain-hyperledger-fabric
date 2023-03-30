@@ -1,3 +1,5 @@
+import "source-map-support/register";
+
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs/lib/construct";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
@@ -5,17 +7,24 @@ import * as eks from "aws-cdk-lib/aws-eks";
 import {
   FrameworkVersion,
   HyperledgerFabricNetwork,
+  HyperledgerFabricNodeProps,
   InstanceType,
 } from "@cdklabs/cdk-hyperledger-fabric-network";
+import { HyperledgerFabricNetworkStackProps } from "./hyper-ledger-fabric-network-stack-props";
+import { getAvaibilityZone } from "../utilities/get-avaibility-zone";
 
 export class HyperledgerFabricNetworkStack extends cdk.Stack {
-  constructor(app: Construct, id: string, props?: cdk.StackProps) {
+  constructor(
+    app: Construct,
+    id: string,
+    props?: HyperledgerFabricNetworkStackProps
+  ) {
     super(app, id, props);
 
     // Define the VPC in us-east-1 region
-    const vpcUsEast1 = new ec2.Vpc(
+    const specificRegionVPC = new ec2.Vpc(
       app,
-      `Hyperledger-Fabric-VPC-${this.region}`,
+      `hyperledger-fabric-vpc-${this.region}`,
       {
         maxAzs: 3,
         cidr: "10.0.0.0/16",
@@ -34,16 +43,29 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
     );
 
     // Define the EKS cluster in us-east-1 region
-    const clusterUsEast1 = new eks.Cluster(
+    const specificRegionEKSCluster = new eks.Cluster(
       app,
-      "Hyperledger-Fabric-Cluster-UsEast1",
+      `hyperledger-fabric-cluster-${this.region}`,
       {
-        vpc: vpcUsEast1,
-        defaultCapacity: 2,
-        clusterName: "hyperledger-fabric-cluster-us-east-1",
+        vpc: specificRegionVPC,
+        defaultCapacity: 1,
+        clusterName: `hyperledger-fabric-cluster-${this.region}`,
         version: eks.KubernetesVersion.V1_25,
       }
     );
+
+    // Build Hyperledger Fabric nodes
+    const availabilityZones = getAvaibilityZone(this.region);
+    const numberOfNodePerAZ = props?.numberOfNodePerAZ ?? 1;
+    const hyperledgerFabricNodes: HyperledgerFabricNodeProps[] = [];
+    availabilityZones.map((availabilityZone) => {
+      for (let i = 0; i < numberOfNodePerAZ; i++) {
+        hyperledgerFabricNodes.push({
+          availabilityZone: availabilityZone,
+          instanceType: props?.instanceType ?? InstanceType.STANDARD5_LARGE,
+        });
+      }
+    });
 
     new HyperledgerFabricNetwork(this, "Example", {
       networkName: "MyNetwork",
@@ -53,26 +75,13 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
       frameworkVersion: FrameworkVersion.VERSION_2_2,
       proposalDurationInHours: 48,
       thresholdPercentage: 75,
-      nodes: [
-        {
-          availabilityZone: "us-east-1a",
-          instanceType: InstanceType.STANDARD5_LARGE,
-        },
-        {
-          availabilityZone: "us-east-1b",
-          instanceType: InstanceType.STANDARD5_LARGE,
-        },
-        {
-          availabilityZone: "us-east-1c",
-          instanceType: InstanceType.BURSTABLE3_SMALL,
-        },
-      ],
+      nodes: hyperledgerFabricNodes,
       users: [
         { userId: "AppUser1", affilitation: "MyMember" },
         { userId: "AppUser2", affilitation: "MyMember.department1" },
       ],
       client: {
-        vpc: vpcUsEast1,
+        vpc: specificRegionVPC,
       },
     });
   }
