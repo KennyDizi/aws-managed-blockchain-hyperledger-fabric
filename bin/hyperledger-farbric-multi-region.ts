@@ -2,12 +2,12 @@
 import "source-map-support/register";
 
 import * as cdk from "aws-cdk-lib";
-import { HyperLedgerFarbricMultiRegionStack } from "../lib/hyperledger-farbric-multi-region-stack";
+import { HyperLedgerFarbricNetworkStack } from "../lib/hyperledger-fabric-network-node-stack";
 
 const app = new cdk.App();
-new HyperLedgerFarbricMultiRegionStack(
+const hyperledgerFarbricNetworkStack = new HyperLedgerFarbricNetworkStack(
   app,
-  "HyperLedgerFarbricMultiRegionStack"
+  "HyperLedgerFarbricNetworkStack"
 );
 
 // Synthesize this stage into a cloud assembly

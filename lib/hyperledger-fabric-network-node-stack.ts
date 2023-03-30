@@ -14,7 +14,7 @@ import {
 import { HyperledgerFabricNetworkStackProps } from "./hyperledger-fabric-network-stack-props";
 import { getAvaibilityZones } from "../utilities/get-avaibility-zone";
 
-export class HyperledgerFabricNetworkStack extends cdk.Stack {
+export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
   constructor(
     app: Construct,
     id: string,
@@ -94,13 +94,19 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
     // Output VPC ID
     new core.CfnOutput(this, "VpcId", {
       value: specificRegionVPC.vpcId,
-      exportName: "MyVpcId",
+      exportName: `${this.region}-VpcId`,
     });
 
     // Output EKS cluster name
     new core.CfnOutput(this, "ClusterName", {
       value: specificRegionEKSCluster.clusterName,
-      exportName: "MyEKSClusterName",
+      exportName: `${this.region}-EKSClusterName`,
+    });
+
+    // Output EKS cluster endpoint
+    new core.CfnOutput(this, "ClusterEndpoint", {
+      value: specificRegionEKSCluster.clusterEndpoint,
+      exportName: `${this.region}-EKSClusterEndpoint`,
     });
   }
 }
