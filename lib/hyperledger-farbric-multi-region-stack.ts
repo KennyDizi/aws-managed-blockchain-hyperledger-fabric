@@ -3,13 +3,15 @@ import "source-map-support/register";
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as eks from "aws-cdk-lib/aws-eks";
-import * as ec2peer from "aws-cdk-lib/aws-ec2-peer";
 import * as route53 from "aws-cdk-lib/aws-route53";
 import * as route53targets from "aws-cdk-lib/aws-route53-targets";
 import { Construct } from "constructs/lib/construct";
 import { DefaultCapacityType } from "aws-cdk-lib/aws-eks";
-import { HyperledgerFabricNetwork } from "@cdklabs/cdk-hyperledger-fabric-network";
-import * as hyperledger from "@cdklabs/cdk-hyperledger-fabric-network";
+import {
+  FrameworkVersion,
+  HyperledgerFabricNetwork,
+  InstanceType,
+} from "@cdklabs/cdk-hyperledger-fabric-network";
 
 export class HyperLedgerFarbricMultiRegionStack extends cdk.Stack {
   constructor(app: Construct, id: string, props?: cdk.StackProps) {
@@ -17,9 +19,9 @@ export class HyperLedgerFarbricMultiRegionStack extends cdk.Stack {
 
     // Define the VPC in us-east-1 region
     const vpcUsEast1 = new ec2.Vpc(app, "Hyperledger-Fabric-VPC-UsEast1", {
-      maxAzs: 2,
+      maxAzs: 3,
       cidr: "10.0.0.0/16",
-      natGateways: 3,
+      natGateways: 1,
       subnetConfiguration: [
         {
           subnetType: ec2.SubnetType.PUBLIC,
@@ -109,27 +111,30 @@ export class HyperLedgerFarbricMultiRegionStack extends cdk.Stack {
       networkName: "MyNetwork",
       networkDescription: "This is my Hyperledger Fabric network",
       memberName: "MyMember",
-      frameworkVersion: hyperledger.FrameworkVersion.VERSION_2_2,
+      frameworkVersion: FrameworkVersion.VERSION_2_2,
       proposalDurationInHours: 48,
       thresholdPercentage: 75,
       nodes: [
         {
           availabilityZone: "us-east-1a",
-          instanceType: hyperledger.InstanceType.STANDARD5_LARGE,
+          instanceType: InstanceType.STANDARD5_LARGE,
         },
         {
           availabilityZone: "us-east-1b",
-          instanceType: hyperledger.InstanceType.STANDARD5_LARGE,
+          instanceType: InstanceType.STANDARD5_LARGE,
         },
         {
           availabilityZone: "",
-          instanceType: hyperledger.InstanceType.BURSTABLE3_SMALL,
+          instanceType: InstanceType.BURSTABLE3_SMALL,
         },
       ],
       users: [
         { userId: "AppUser1", affilitation: "MyMember" },
         { userId: "AppUser2", affilitation: "MyMember.department1" },
       ],
+      client: {
+        vpc: vpcUsEast1,
+      },
     });
   }
 }
