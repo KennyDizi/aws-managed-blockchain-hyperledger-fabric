@@ -4,6 +4,7 @@ import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs/lib/construct";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
 import * as eks from "aws-cdk-lib/aws-eks";
+import * as core from "aws-cdk-lib/core";
 import {
   FrameworkVersion,
   HyperledgerFabricNetwork,
@@ -11,7 +12,7 @@ import {
   InstanceType,
 } from "@cdklabs/cdk-hyperledger-fabric-network";
 import { HyperledgerFabricNetworkStackProps } from "./hyperledger-fabric-network-stack-props";
-import { getAvaibilityZone } from "../utilities/get-avaibility-zone";
+import { getAvaibilityZones } from "../utilities/get-avaibility-zone";
 
 export class HyperledgerFabricNetworkStack extends cdk.Stack {
   constructor(
@@ -21,10 +22,10 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
   ) {
     super(app, id, props);
 
-    const availabilityZones = getAvaibilityZone(this.region);
+    const availabilityZones = getAvaibilityZones(this.region);
     const maxAzs = availabilityZones.length;
 
-    // Define the VPC in us-east-1 region
+    // Define the VPC
     const specificRegionVPC = new ec2.Vpc(
       app,
       `hyperledger-fabric-vpc-${this.region}`,
@@ -45,7 +46,7 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
       }
     );
 
-    // Define the EKS cluster in us-east-1 region
+    // Define the EKS cluster
     const specificRegionEKSCluster = new eks.Cluster(
       app,
       `hyperledger-fabric-cluster-${this.region}`,
@@ -88,6 +89,18 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
       client: {
         vpc: specificRegionVPC,
       },
+    });
+
+    // Output VPC ID
+    new core.CfnOutput(this, "VpcId", {
+      value: specificRegionVPC.vpcId,
+      exportName: "MyVpcId",
+    });
+
+    // Output EKS cluster name
+    new core.CfnOutput(this, "ClusterName", {
+      value: specificRegionEKSCluster.clusterName,
+      exportName: "MyEKSClusterName",
     });
   }
 }

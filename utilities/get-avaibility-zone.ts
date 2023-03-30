@@ -1,6 +1,6 @@
 import { validateRegion } from "@cdklabs/cdk-hyperledger-fabric-network/lib/utilities";
 
-export function getAvaibilityZone(region: string): string[] {
+export function getAvaibilityZones(region: string): string[] {
   validateRegion(region);
   let availabilityZones: string[] = [];
   switch (region) {

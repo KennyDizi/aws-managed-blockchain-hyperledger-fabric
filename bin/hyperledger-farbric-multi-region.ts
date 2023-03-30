@@ -9,3 +9,6 @@ new HyperLedgerFarbricMultiRegionStack(
   app,
   "HyperLedgerFarbricMultiRegionStack"
 );
+
+// Synthesize this stage into a cloud assembly
+app.synth();
