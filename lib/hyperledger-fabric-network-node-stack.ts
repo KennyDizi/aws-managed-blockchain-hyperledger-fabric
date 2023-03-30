@@ -63,6 +63,8 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
         hyperledgerFabricNodes.push({
           availabilityZone: availabilityZone,
           instanceType: props?.instanceType ?? InstanceType.BURSTABLE3_SMALL,
+          enableChaincodeLogging: true,
+          enableNodeLogging: true,
         });
       }
     });
