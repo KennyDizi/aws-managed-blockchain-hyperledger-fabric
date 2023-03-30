@@ -18,7 +18,6 @@
   "dependencies": {
     "@cdklabs/cdk-hyperledger-fabric-network": "^0.8.235",
     "aws-cdk-lib": "2.72.0",
-    "aws-sdk": "^2.1346.0",
     "constructs": "10.1.296",
     "source-map-support": "^0.5.21"
   },
