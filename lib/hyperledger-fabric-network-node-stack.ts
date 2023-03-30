@@ -21,12 +21,15 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
   ) {
     super(app, id, props);
 
+    const availabilityZones = getAvaibilityZone(this.region);
+    const maxAzs = availabilityZones.length;
+
     // Define the VPC in us-east-1 region
     const specificRegionVPC = new ec2.Vpc(
       app,
       `hyperledger-fabric-vpc-${this.region}`,
       {
-        maxAzs: 3,
+        maxAzs: maxAzs,
         cidr: "10.0.0.0/16",
         natGateways: 1,
         subnetConfiguration: [
@@ -55,7 +58,6 @@ export class HyperledgerFabricNetworkStack extends cdk.Stack {
     );
 
     // Build Hyperledger Fabric Nodes
-    const availabilityZones = getAvaibilityZone(this.region);
     const numberOfNodePerAZ = props?.numberOfNodePerAZ ?? 1;
     const hyperledgerFabricNodes: HyperledgerFabricNodeProps[] = [];
     availabilityZones.map((availabilityZone) => {
