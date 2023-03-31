@@ -22,6 +22,19 @@ export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
   ) {
     super(app, id, props);
 
+    /**
+     * Configurable parameters to be passed to CloudFormation stack
+     * upon deployment
+     */
+    const keyPair = new cdk.CfnParameter(this, "keypair", {
+      type: "String",
+      description: "EC2 Key Pair Name",
+    });
+    const sshSafeIp = new cdk.CfnParameter(this, "safeip", {
+      type: "String",
+      description: "IP Address with /32 suffix to Allow SSH Connections from",
+    });
+
     const availabilityZones = getAvaibilityZones(this.region);
     const maxAzs = availabilityZones.length;
 
@@ -47,6 +60,31 @@ export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
         ],
         availabilityZones: availabilityZones,
       }
+    );
+
+    /**
+     * Security Group Allowing SSH Connections from specific IP
+     * along with all TCP traffic among EC2s within VPC
+     */
+    const ec2SecurityGroup = new ec2.SecurityGroup(
+      this,
+      `${this.region}-ec2-ssh-security-group`,
+      {
+        vpc: specificRegionVPC,
+        description:
+          "Allow SSH (TCP port 22) from Anywhere and All TCP within VPC",
+        allowAllOutbound: true,
+      }
+    );
+    ec2SecurityGroup.addIngressRule(
+      ec2.Peer.ipv4(sshSafeIp.valueAsString),
+      ec2.Port.tcp(22),
+      "Allow SSH from Specific IP"
+    );
+    ec2SecurityGroup.addIngressRule(
+      ec2.Peer.ipv4(specificRegionVPC.vpcCidrBlock),
+      ec2.Port.allTcp(),
+      "Allow all TCP within VPC"
     );
 
     // Define the EKS cluster
@@ -83,6 +121,7 @@ export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
       proposalDurationInHours: props?.proposalDurationInHours ?? 48,
       thresholdPercentage: props?.thresholdPercentage ?? 75,
       nodes: hyperledgerFabricNodes,
+      enrollAdmin: true,
       users: [
         { userId: "AppUser1", affilitation: "MyMember" },
         { userId: "AppUser2", affilitation: "MyMember.department1" },

@@ -65,12 +65,16 @@ export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
      * Security Group Allowing SSH Connections from specific IP
      * along with all TCP traffic among EC2s within VPC
      */
-    const ec2SecurityGroup = new ec2.SecurityGroup(this, "ssh-security-group", {
-      vpc: specificRegionVPC,
-      description:
-        "Allow SSH (TCP port 22) from Anywhere and All TCP within VPC",
-      allowAllOutbound: true,
-    });
+    const ec2SecurityGroup = new ec2.SecurityGroup(
+      this,
+      `${this.region}-ec2-ssh-security-group`,
+      {
+        vpc: specificRegionVPC,
+        description:
+          "Allow SSH (TCP port 22) from Anywhere and All TCP within VPC",
+        allowAllOutbound: true,
+      }
+    );
     ec2SecurityGroup.addIngressRule(
       ec2.Peer.ipv4(sshSafeIp.valueAsString),
       ec2.Port.tcp(22),
@@ -106,6 +110,7 @@ export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
       proposalDurationInHours: props.proposalDurationInHours ?? 48,
       thresholdPercentage: props.thresholdPercentage ?? 75,
       nodes: hyperledgerFabricNodes,
+      enrollAdmin: true,
       users: [
         { userId: "AppUser1", affilitation: "MyMember" },
         { userId: "AppUser2", affilitation: "MyMember.department1" },
