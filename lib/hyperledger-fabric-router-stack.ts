@@ -1,27 +1,34 @@
-import * as cdk from "aws-cdk-lib";
 import * as core from "aws-cdk-lib/core";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
+import * as route53 from "aws-cdk-lib/aws-route53";
+import * as route53targets from "aws-cdk-lib/aws-route53-targets";
 import { Construct } from "constructs/lib/construct";
+import { HyperLedgerFabricRouterStackProps } from "./hyperledger-fabric-router-stack-props";
 
-class MySecondStack extends core.Stack {
+export class HyperLedgerFabricRouterStack extends core.Stack {
   constructor(
     scope: Construct,
     id: string,
-    vpcId: string,
-    props?: core.StackProps
+    props: HyperLedgerFabricRouterStackProps
   ) {
     super(scope, id, props);
 
     // Use VPC ID from first stack as parameter
-    const vpc = ec2.Vpc.fromLookup(this, `${this.region}-VpcId`, {
-      vpcId,
-    });
+    const vpcs = props.vpcIDs.map((vpcID) =>
+      ec2.Vpc.fromLookup(this, `${this.region}-VpcId-${vpcID}`, {
+        vpcId: vpcID,
+      })
+    );
+    const firstVPC = vpcs[0];
 
-    // Create EC2 instance in VPC
-    const instance = new ec2.Instance(this, "MyInstance", {
-      vpc,
-      instanceType: new ec2.InstanceType("t2.micro"),
-      machineImage: new ec2.AmazonLinuxImage(),
-    });
+    // Define the Route53 private hosted zone
+    const zone = new route53.PrivateHostedZone(
+      scope,
+      "hyperledger-fabric-zone",
+      {
+        zoneName: "hyperledger-fabric.local",
+        vpc: firstVPC,
+      }
+    );
   }
 }
