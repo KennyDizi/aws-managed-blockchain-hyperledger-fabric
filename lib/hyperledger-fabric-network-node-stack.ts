@@ -64,6 +64,7 @@ export class HyperLedgerFarbricNetworkStack extends cdk.Stack {
     /**
      * Security Group Allowing SSH Connections from specific IP
      * along with all TCP traffic among EC2s within VPC
+     * https://thecodinginterface.com/blog/aws-vpc-endpoints-with-cdk/
      */
     const ec2SecurityGroup = new ec2.SecurityGroup(
       this,
